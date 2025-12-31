@@ -1,0 +1,274 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{Madrid}
+\usecolortheme{whale}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{booktabs}
+
+% Custom colors
+\definecolor{polyblue}{RGB}{0, 82, 147}
+\definecolor{darkblue}{RGB}{0, 51, 102}
+\setbeamercolor{structure}{fg=polyblue}
+\setbeamercolor{title}{fg=white,bg=polyblue}
+\setbeamercolor{frametitle}{fg=white,bg=polyblue}
+
+% Remove navigation symbols
+\setbeamertemplate{navigation symbols}{}
+
+% Title info
+\title[Vultester]{Vultester}
+\subtitle{Système Expert de Détection de Vulnérabilités Serveur}
+\author{Mohamed Aziz Mansour}
+\institute{École Polytechnique de Sousse\\Tuteur: F. SBIAA}
+\date{4INFO 2025-2026}
+
+\begin{document}
+
+% ===== SLIDE 1: Title =====
+\begin{frame}
+\titlepage
+\end{frame}
+
+% ===== SLIDE 2: Plan =====
+\begin{frame}{Plan}
+\tableofcontents
+\end{frame}
+
+% ===== SECTION 1 =====
+\section{Introduction}
+
+\begin{frame}{Contexte}
+\begin{columns}
+\column{0.6\textwidth}
+\begin{itemize}
+    \item \textbf{Solution}: Système expert pour détecter automatiquement les failles de sécurité
+    \item \textbf{Objectif}: Analyser la configuration et recommander des correctifs
+\end{itemize}
+
+\column{0.4\textwidth}
+\begin{tikzpicture}[scale=0.8]
+    \node[draw, fill=red!20, rounded corners, minimum width=2.5cm, minimum height=1cm] at (0,2) {Menaces};
+    \node[draw, fill=blue!20, rounded corners, minimum width=2.5cm, minimum height=1cm] at (0,0) {Serveur};
+    \node[draw, fill=green!20, rounded corners, minimum width=2.5cm, minimum height=1cm] at (0,-2) {Vultester};
+    \draw[->, thick] (0,1.4) -- (0,0.6);
+    \draw[->, thick, dashed] (0,-0.6) -- (0,-1.4);
+\end{tikzpicture}
+\end{columns}
+\end{frame}
+
+% ===== SECTION 2 =====
+\section{Architecture du Système}
+
+\begin{frame}{Architecture Globale}
+\begin{center}
+\begin{tikzpicture}[node distance=2cm, scale=0.9, transform shape]
+    % Frontend
+    \node[draw, fill=blue!20, rounded corners, minimum width=3cm, minimum height=1.5cm] (frontend) at (0,0) {\textbf{Frontend}\\React + Tailwind};
+    
+    % Backend
+    \node[draw, fill=green!20, rounded corners, minimum width=3cm, minimum height=1.5cm] (backend) at (5,0) {\textbf{Backend}\\Flask API};
+    
+    % Expert System
+    \node[draw, fill=orange!20, rounded corners, minimum width=3cm, minimum height=1.5cm] (expert) at (10,0) {\textbf{Moteur}\\d'Inférence};
+    
+    % Knowledge Base
+    \node[draw, fill=purple!20, rounded corners, minimum width=3cm, minimum height=1.5cm] (kb) at (10,-3) {\textbf{Base de}\\Connaissances};
+    
+    % Arrows
+    \draw[->, thick] (frontend) -- node[above] {HTTP} (backend);
+    \draw[->, thick] (backend) -- (expert);
+    \draw[<->, thick] (expert) -- (kb);
+\end{tikzpicture}
+\end{center}
+\end{frame}
+
+\begin{frame}{Base de Connaissances}
+\begin{columns}
+\column{0.5\textwidth}
+\textbf{50 Règles Expertes}
+\begin{itemize}
+    \item PORT (10 règles) - Ports ouverts
+    \item SSL (8 règles) - Certificats
+    \item SSH (8 règles) - Configuration SSH
+    \item PERM (8 règles) - Permissions
+    \item SOFT (8 règles) - Logiciels
+    \item NET (8 règles) - Réseau
+\end{itemize}
+
+\column{0.5\textwidth}
+\textbf{4 Niveaux de Sévérité}
+\begin{itemize}
+    \item[\textcolor{red}{$\bullet$}] \textbf{CRITICAL} - Action immédiate
+    \item[\textcolor{orange}{$\bullet$}] \textbf{DANGEROUS} - Risque élevé
+    \item[\textcolor{yellow}{$\bullet$}] \textbf{WARNING} - Attention
+    \item[\textcolor{blue}{$\bullet$}] \textbf{INFO} - Information
+\end{itemize}
+\end{columns}
+\end{frame}
+
+% ===== SECTION 3 =====
+\section{Moteurs d'Inférence}
+
+\begin{frame}{Chaînage Avant (Forward Chaining)}
+\begin{columns}
+\column{0.5\textwidth}
+\textbf{Principe:}
+\begin{enumerate}
+    \item Partir des faits initiaux
+    \item Chercher les règles applicables
+    \item Déduire de nouveaux faits
+    \item Répéter jusqu'à saturation
+\end{enumerate}
+
+\column{0.5\textwidth}
+\begin{tikzpicture}[scale=0.7]
+    \node[draw, circle, fill=blue!20] (f1) at (0,0) {F1};
+    \node[draw, circle, fill=blue!20] (f2) at (2,0) {F2};
+    \node[draw, rectangle, fill=yellow!20] (r1) at (1,-1.5) {R1};
+    \node[draw, circle, fill=green!20] (f3) at (1,-3) {F3};
+    
+    \draw[->, thick] (f1) -- (r1);
+    \draw[->, thick] (f2) -- (r1);
+    \draw[->, thick] (r1) -- (f3);
+\end{tikzpicture}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Chaînage Arrière (Backward Chaining)}
+\begin{columns}
+\column{0.5\textwidth}
+\textbf{Principe:}
+\begin{enumerate}
+    \item Partir d'un but à prouver
+    \item Chercher les règles qui concluent ce but
+    \item Vérifier les conditions (récursivement)
+    \item Valider ou invalider le but
+\end{enumerate}
+
+\column{0.5\textwidth}
+\begin{tikzpicture}[scale=0.7]
+    \node[draw, circle, fill=green!20] (goal) at (1,0) {But};
+    \node[draw, rectangle, fill=yellow!20] (r1) at (1,-1.5) {R1};
+    \node[draw, circle, fill=blue!20] (c1) at (0,-3) {C1};
+    \node[draw, circle, fill=blue!20] (c2) at (2,-3) {C2};
+    
+    \draw[->, thick, dashed] (goal) -- (r1);
+    \draw[->, thick, dashed] (r1) -- (c1);
+    \draw[->, thick, dashed] (r1) -- (c2);
+\end{tikzpicture}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Chaînage Mixte}
+\textbf{Combinaison des deux approches:}
+\begin{enumerate}
+    \item \textbf{Phase 1}: Chaînage avant pour déduire tous les faits possibles
+    \item \textbf{Phase 2}: Chaînage arrière pour vérifier les vulnérabilités restantes
+\end{enumerate}
+
+\vspace{0.5cm}
+\begin{center}
+\begin{tikzpicture}[scale=0.8]
+    \node[draw, fill=blue!20, rounded corners] (phase1) at (0,0) {Phase 1: Avant};
+    \node[draw, fill=green!20, rounded corners] (phase2) at (5,0) {Phase 2: Arrière};
+    \node[draw, fill=orange!20, rounded corners] (result) at (10,0) {Résultats};
+    
+    \draw[->, thick] (phase1) -- (phase2);
+    \draw[->, thick] (phase2) -- (result);
+\end{tikzpicture}
+\end{center}
+\end{frame}
+
+% ===== SECTION 4 =====
+\section{Démonstration}
+
+\begin{frame}{Interface - Scanner}
+\begin{center}
+\textit{[Capture d'écran du Scanner]}
+
+\vspace{0.5cm}
+\begin{itemize}
+    \item Interface questionnaire en 8 étapes
+    \item Sélection des caractéristiques du serveur
+    \item Choix de la méthode de chaînage
+\end{itemize}
+\end{center}
+\end{frame}
+
+\begin{frame}{Interface - Résultats}
+\begin{center}
+\textit{[Capture d'écran des Résultats]}
+
+\vspace{0.5cm}
+\begin{itemize}
+    \item Vulnérabilités classées par sévérité
+    \item Recommandations de correction
+    \item Trace d'inférence détaillée
+\end{itemize}
+\end{center}
+\end{frame}
+
+% ===== SECTION 5 =====
+\section{Exemple d'Exécution}
+
+\begin{frame}{Exemple: Détection SSH Brute Force}
+\textbf{Faits initiaux:}
+\begin{itemize}
+    \item \texttt{port\_22\_open}
+    \item \texttt{password\_auth\_enabled}
+\end{itemize}
+
+\vspace{0.3cm}
+\textbf{Règle PORT-01:}
+\begin{center}
+\fbox{\texttt{port\_22\_open} $\land$ \texttt{password\_auth\_enabled} $\Rightarrow$ \texttt{ssh\_brute\_force\_risk}}
+\end{center}
+
+\vspace{0.3cm}
+\textbf{Résultat:}
+\begin{itemize}
+    \item[\textcolor{orange}{$\bullet$}] Sévérité: \textbf{DANGEROUS}
+    \item Recommandation: Désactiver l'authentification par mot de passe
+\end{itemize}
+\end{frame}
+
+% ===== SECTION 6 =====
+\section{Conclusion}
+
+\begin{frame}{Conclusion}
+\textbf{Réalisations:}
+\begin{itemize}
+    \item Système expert fonctionnel avec 50 règles
+    \item 3 méthodes d'inférence implémentées
+    \item Interface web moderne et intuitive
+    \item Déploiement cloud (Railway + GitHub Pages)
+\end{itemize}
+
+\vspace{0.5cm}
+\textbf{Améliorations futures:}
+\begin{itemize}
+    \item Scan automatique des serveurs
+    \item Apprentissage de nouvelles règles
+    \item Intégration avec des outils de sécurité
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+\Huge\textbf{Merci pour votre attention}
+
+\vspace{1cm}
+\large Questions?
+
+\vspace{1cm}
+\normalsize
+\texttt{https://kirazul.github.io/Vultester\_polytechnique/}
+\end{center}
+\end{frame}
+
+\end{document}

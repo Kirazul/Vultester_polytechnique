@@ -6,6 +6,8 @@ const links = [
   { href: '/', label: 'Accueil' },
   { href: '/scanner', label: 'Scanner' },
   { href: '/base', label: 'Base de règles' },
+  { href: '/rapport', label: 'Rapport' },
+  { href: '/presentation', label: 'Présentation' },
   { href: '/a-propos', label: 'À propos' },
 ]
 

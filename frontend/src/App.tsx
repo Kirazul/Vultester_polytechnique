@@ -5,6 +5,8 @@ import { Navbar } from './components/layout/Navbar'
 import { Home } from './pages/Home'
 import { Scanner } from './pages/Scanner'
 import { KnowledgeBase } from './pages/KnowledgeBase'
+import { Rapport } from './pages/Rapport'
+import { Presentation } from './pages/Presentation'
 import { About } from './pages/About'
 
 function PageWrapper({ children }: { children: React.ReactNode }) {
@@ -29,6 +31,8 @@ function AnimatedRoutes() {
         <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
         <Route path="/scanner" element={<PageWrapper><Scanner /></PageWrapper>} />
         <Route path="/base" element={<PageWrapper><KnowledgeBase /></PageWrapper>} />
+        <Route path="/rapport" element={<PageWrapper><Rapport /></PageWrapper>} />
+        <Route path="/presentation" element={<PageWrapper><Presentation /></PageWrapper>} />
         <Route path="/a-propos" element={<PageWrapper><About /></PageWrapper>} />
       </Routes>
     </AnimatePresence>
