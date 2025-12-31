@@ -1,0 +1,733 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning}
+
+\geometry{margin=2.5cm}
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
+
+% Styles pour le code
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!10},
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red!60!black}
+}
+
+% En-tête et pied de page
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Vultester - Système Expert}
+\fancyhead[R]{4INFO 2025-2026}
+\fancyfoot[C]{\thepage}
+
+\begin{document}
+
+% Page de garde
+\begin{titlepage}
+    \centering
+    \vspace*{1cm}
+    
+    % Logos
+    \begin{figure}[H]
+        \centering
+        \includegraphics[height=2.5cm]{poly.png}
+        \hspace{2cm}
+        \includegraphics[height=2.5cm]{logo.png}
+    \end{figure}
+    
+    \vspace{1cm}
+    
+    {\Large \textbf{École Polytechnique de Sousse}}\\[0.3cm]
+    {\large Département Informatique}\\[0.3cm]
+    {\large 4ème Année - 2025/2026}
+    
+    \vspace{1.5cm}
+    
+    \rule{\textwidth}{1pt}\\[0.5cm]
+    {\Huge \textbf{Vultester}}\\[0.3cm]
+    {\LARGE Système Expert de Détection de\\Vulnérabilités Serveur}\\[0.5cm]
+    \rule{\textwidth}{1pt}
+    
+    \vspace{1.5cm}
+    
+    {\large \textbf{Module:} Fondements de l'Intelligence Artificielle}
+    
+    \vspace{2cm}
+    
+    \begin{minipage}{0.45\textwidth}
+        \begin{flushleft}
+            \textbf{Réalisé par:}\\
+            Mohamed Aziz Mansour
+        \end{flushleft}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \begin{flushright}
+            \textbf{Tuteur:}\\
+            Mme F. SBIAA
+        \end{flushright}
+    \end{minipage}
+    
+    \vfill
+    
+    {\large Année Universitaire 2025-2026}
+\end{titlepage}
+
+% Table des matières
+\tableofcontents
+\newpage
+
+% ============================================================================
+% INTRODUCTION
+% ============================================================================
+\section{Introduction}
+
+\subsection{Contexte}
+La sécurité informatique est devenue un enjeu majeur pour toutes les organisations. Un serveur mal configuré peut devenir une cible facile pour les cyberattaques: ports ouverts inutilement, versions de logiciels obsolètes, absence de chiffrement SSL/TLS, permissions incorrectes sur les fichiers, etc.
+
+Les administrateurs système s'appuient traditionnellement sur leur expertise pour analyser les configurations et identifier les risques. Cependant, cette approche manuelle est:
+\begin{itemize}
+    \item Chronophage et sujette aux erreurs humaines
+    \item Difficile à standardiser et à reproduire
+    \item Dépendante de l'expérience individuelle
+\end{itemize}
+
+\subsection{Objectifs du Projet}
+Ce projet vise à développer un \textbf{système expert} capable de:
+\begin{enumerate}
+    \item Identifier automatiquement les vulnérabilités d'un serveur
+    \item Formaliser l'expertise en sécurité dans une base de connaissances
+    \item Implémenter un moteur d'inférence (chaînage avant, arrière, mixte)
+    \item Fournir des diagnostics avec 4 niveaux de sévérité
+    \item Proposer des actions correctives (patches)
+    \item Expliquer le raisonnement via une trace d'inférence
+\end{enumerate}
+
+\subsection{Solution Proposée}
+\textbf{Vultester} est une application web composée de:
+\begin{itemize}
+    \item Un \textbf{backend Python/Flask} contenant le moteur d'inférence et 50 règles expertes
+    \item Un \textbf{frontend React} offrant une interface moderne et intuitive
+    \item \textbf{3 méthodes de chaînage}: avant, arrière et mixte
+\end{itemize}
+
+\newpage
+
+% ============================================================================
+% CONCEPTION DU SYSTÈME
+% ============================================================================
+\section{Conception du Système}
+
+\subsection{Architecture Globale}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1.5cm,
+    box/.style={rectangle, draw, rounded corners, minimum width=3cm, minimum height=1cm, align=center, fill=blue!10},
+    arrow/.style={->, thick}
+]
+    % Nodes
+    \node[box] (user) {Utilisateur};
+    \node[box, right=2cm of user] (frontend) {Frontend\\React/TypeScript};
+    \node[box, right=2cm of frontend] (api) {API REST\\Flask};
+    \node[box, below=1.5cm of api] (engine) {Moteur\\d'Inférence};
+    \node[box, left=2cm of engine] (kb) {Base de\\Connaissances\\(50 règles)};
+    \node[box, right=2cm of engine] (results) {Résultats\\Diagnostic};
+    
+    % Arrows
+    \draw[arrow] (user) -- (frontend);
+    \draw[arrow] (frontend) -- (api);
+    \draw[arrow] (api) -- (engine);
+    \draw[arrow] (kb) -- (engine);
+    \draw[arrow] (engine) -- (results);
+    \draw[arrow] (results) -- (api);
+\end{tikzpicture}
+\caption{Architecture du système Vultester}
+\end{figure}
+
+\subsection{Structure des Données}
+
+\subsubsection{Représentation des Règles}
+Chaque règle est représentée par un dictionnaire Python:
+
+\begin{lstlisting}[language=Python]
+{
+    "id": "R1",
+    "conditions": ["port_22_open", "password_auth_enabled"],
+    "consequence": "ssh_brute_force_risk",
+    "severity": "dangerous",
+    "description": "SSH avec authentification par mot de passe..."
+}
+\end{lstlisting}
+
+\subsubsection{Niveaux de Sévérité}
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Niveau} & \textbf{Description} & \textbf{Action} \\
+\hline
+CRITICAL & Vulnérabilité critique & Action immédiate requise \\
+\hline
+DANGEROUS & Configuration dangereuse & Action recommandée \\
+\hline
+WARNING & Avertissement & Révision recommandée \\
+\hline
+ACCEPTABLE & Configuration acceptable & Surveillance continue \\
+\hline
+\end{tabular}
+\caption{Niveaux de sévérité du diagnostic}
+\end{table}
+
+\newpage
+
+% ============================================================================
+% MOTEUR D'INFÉRENCE
+% ============================================================================
+\section{Moteur d'Inférence}
+
+Le système implémente \textbf{trois méthodes de chaînage}, codées manuellement sans bibliothèques spécialisées.
+
+\subsection{Chaînage Avant (Forward Chaining)}
+
+\subsubsection{Principe}
+Le chaînage avant part des \textbf{faits connus} (configuration serveur) et applique les règles pour déduire de \textbf{nouveaux faits} (vulnérabilités).
+
+\subsubsection{Algorithme}
+\begin{lstlisting}[language=Python]
+def forward_chaining(initial_facts):
+    queue = copy.deepcopy(initial_facts)
+    facts = []
+    fired_rules = []
+    
+    while queue:
+        current_fact = queue.pop(0)
+        if current_fact not in facts:
+            facts.append(current_fact)
+        
+        for rule in rules:
+            if rule not in fired_rules:
+                if all(cond in facts for cond in rule.conditions):
+                    queue.append(rule.consequence)
+                    fired_rules.append(rule)
+    
+    return analyze_results()
+\end{lstlisting}
+
+\subsubsection{Exemple d'Exécution}
+\begin{enumerate}
+    \item Faits initiaux: \texttt{[port\_22\_open, password\_auth\_enabled]}
+    \item Règle R1 vérifiée: conditions satisfaites
+    \item Nouveau fait déduit: \texttt{ssh\_brute\_force\_risk}
+    \item Diagnostic: Configuration DANGEREUSE
+\end{enumerate}
+
+\subsection{Chaînage Arrière (Backward Chaining)}
+
+\subsubsection{Principe}
+Le chaînage arrière part des \textbf{buts} (vulnérabilités possibles) et vérifie si les faits peuvent les \textbf{prouver}.
+
+\subsubsection{Algorithme}
+\begin{lstlisting}[language=Python]
+def backward_chaining(initial_facts, goals):
+    for goal in goals:
+        if prove_goal(goal, facts, visited=set()):
+            proven_goals.append(goal)
+    return analyze_results()
+
+def prove_goal(goal, facts, visited):
+    if goal in facts:
+        return True
+    for rule in rules:
+        if rule.consequence == goal:
+            if all(prove_goal(cond, facts, visited) 
+                   for cond in rule.conditions):
+                return True
+    return False
+\end{lstlisting}
+
+\newpage
+
+\subsection{Chaînage Mixte (Mixed Chaining)}
+
+\subsubsection{Principe}
+Le chaînage mixte \textbf{combine} les deux approches:
+\begin{enumerate}
+    \item \textbf{Phase 1}: Chaînage avant pour déduire tous les faits possibles
+    \item \textbf{Phase 2}: Chaînage arrière pour vérifier les vulnérabilités non détectées
+\end{enumerate}
+
+\subsubsection{Avantages}
+\begin{itemize}
+    \item Analyse plus \textbf{exhaustive}
+    \item Détecte des vulnérabilités que le chaînage avant seul pourrait manquer
+    \item Combine l'efficacité des deux méthodes
+\end{itemize}
+
+\subsection{Diagramme de Flux du Moteur d'Inférence}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1.2cm,
+    startstop/.style={rectangle, rounded corners, draw, fill=red!20, minimum width=2.5cm, minimum height=0.8cm, align=center},
+    process/.style={rectangle, draw, fill=blue!20, minimum width=3cm, minimum height=0.8cm, align=center},
+    decision/.style={diamond, draw, fill=green!20, minimum width=2cm, minimum height=1cm, align=center, aspect=2},
+    arrow/.style={->, thick}
+]
+    \node[startstop] (start) {Début};
+    \node[process, below=of start] (init) {Initialiser faits};
+    \node[process, below=of init] (pop) {Extraire fait de la queue};
+    \node[decision, below=of pop] (empty) {Queue vide?};
+    \node[process, right=2cm of empty] (check) {Vérifier règles};
+    \node[decision, below=of check] (satisfied) {Conditions\\satisfaites?};
+    \node[process, below=of satisfied] (add) {Ajouter conséquence};
+    \node[process, left=2cm of empty] (analyze) {Analyser résultats};
+    \node[startstop, below=of analyze] (end) {Fin};
+    
+    \draw[arrow] (start) -- (init);
+    \draw[arrow] (init) -- (pop);
+    \draw[arrow] (pop) -- (empty);
+    \draw[arrow] (empty) -- node[above] {Non} (check);
+    \draw[arrow] (check) -- (satisfied);
+    \draw[arrow] (satisfied) -- node[right] {Oui} (add);
+    \draw[arrow] (add.west) -- ++(-1,0) |- (pop);
+    \draw[arrow] (satisfied.east) -- ++(1,0) node[right] {Non} |- (pop);
+    \draw[arrow] (empty) -- node[above] {Oui} (analyze);
+    \draw[arrow] (analyze) -- (end);
+\end{tikzpicture}
+\caption{Diagramme de flux du chaînage avant}
+\end{figure}
+
+\newpage
+
+% ============================================================================
+% BASE DE CONNAISSANCES
+% ============================================================================
+\section{Base de Connaissances}
+
+La base contient \textbf{50 règles expertes} organisées en 7 catégories.
+
+\subsection{Catégories de Règles}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|l|c|l|}
+\hline
+\textbf{Catégorie} & \textbf{Nb} & \textbf{Description} \\
+\hline
+Ports critiques & 10 & Ports réseau exposés (SSH, Telnet, FTP...) \\
+\hline
+SSL/TLS & 8 & Configuration du chiffrement \\
+\hline
+Configuration SSH & 8 & Accès distant sécurisé \\
+\hline
+Permissions fichiers & 8 & Droits sur les fichiers système \\
+\hline
+Versions logiciels & 8 & Services obsolètes \\
+\hline
+Réseau/Pare-feu & 8 & Configuration réseau \\
+\hline
+\textbf{Total} & \textbf{50} & \\
+\hline
+\end{tabular}
+\caption{Répartition des règles par catégorie}
+\end{table}
+
+\subsection{Exemples de Règles}
+
+\subsubsection{Règles Critiques (CRITICAL)}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|c|l|l|}
+\hline
+\textbf{ID} & \textbf{Condition} & \textbf{Description} \\
+\hline
+PORT-02 & port\_23\_open & Telnet transmet les données en clair \\
+\hline
+PORT-03 & port\_21\_open ET ftp\_anonymous & FTP anonyme permet accès non autorisé \\
+\hline
+SSL-06 & ssl\_3\_enabled & SSL 3.0 vulnérable à POODLE \\
+\hline
+SSH-02 & ssh\_protocol\_1 & SSH v1 a des faiblesses crypto \\
+\hline
+PERM-01 & permission\_777\_found & Permissions 777 dangereuses \\
+\hline
+SOFT-01 & apache\_outdated & Apache obsolète avec CVE connus \\
+\hline
+NET-01 & no\_firewall\_enabled & Pas de pare-feu \\
+\hline
+\end{tabular}
+\caption{Exemples de règles critiques}
+\end{table}
+
+\subsubsection{Règles Dangereuses (DANGEROUS)}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|c|l|l|}
+\hline
+\textbf{ID} & \textbf{Condition} & \textbf{Description} \\
+\hline
+PORT-01 & port\_22\_open ET password\_auth & SSH vulnérable au brute force \\
+\hline
+SSL-01 & no\_ssl\_enabled ET port\_80\_open & HTTP sans HTTPS \\
+\hline
+SSL-02 & ssl\_certificate\_expired & Certificat SSL expiré \\
+\hline
+SSH-01 & ssh\_root\_login\_enabled & Login root SSH autorisé \\
+\hline
+NET-03 & ip\_forwarding\_enabled & IP forwarding actif \\
+\hline
+SSL-04 & ssl\_weak\_cipher & Chiffrements SSL faibles \\
+\hline
+SSL-05 & tls\_1\_0\_enabled & TLS 1.0 vulnérable (BEAST, POODLE) \\
+\hline
+SSH-08 & ssh\_weak\_mac & Algorithmes MAC faibles \\
+\hline
+NET-04 & syn\_cookies\_disabled & Vulnérable aux SYN floods \\
+\hline
+NET-08 & snmp\_public\_community & SNMP avec community par défaut \\
+\hline
+\end{tabular}
+\caption{Exemples de règles dangereuses}
+\end{table}
+
+\subsubsection{Règles d'Avertissement (WARNING)}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|c|l|l|}
+\hline
+\textbf{ID} & \textbf{Condition} & \textbf{Description} \\
+\hline
+SSL-03 & ssl\_self\_signed & Certificat auto-signé \\
+\hline
+SSL-07 & no\_hsts\_header & Header HSTS manquant \\
+\hline
+SSH-04 & ssh\_x11\_forwarding & X11 forwarding peut fuiter des infos \\
+\hline
+SSH-05 & ssh\_agent\_forwarding & Agent forwarding exploitable \\
+\hline
+SSH-07 & ssh\_no\_fail2ban & Pas de protection brute force \\
+\hline
+PERM-08 & tmp\_not\_secured & /tmp non sécurisé \\
+\hline
+NET-02 & icmp\_enabled ET no\_rate\_limiting & Ping flood possible \\
+\hline
+\end{tabular}
+\caption{Exemples de règles d'avertissement}
+\end{table}
+
+\subsubsection{Règles Informatives (INFO)}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|c|l|l|}
+\hline
+\textbf{ID} & \textbf{Condition} & \textbf{Description} \\
+\hline
+SSH-06 & ssh\_default\_port & SSH sur port 22 par défaut \\
+\hline
+\end{tabular}
+\caption{Règles informatives}
+\end{table}
+
+\newpage
+
+\subsection{Justification des Règles}
+
+Les règles sont basées sur:
+\begin{itemize}
+    \item \textbf{CVE (Common Vulnerabilities and Exposures)}: Base de données des vulnérabilités connues
+    \item \textbf{CIS Benchmarks}: Standards de sécurité de l'industrie
+    \item \textbf{OWASP}: Recommandations de sécurité web
+    \item \textbf{NIST}: Guidelines de cybersécurité
+\end{itemize}
+
+\subsubsection{Exemple: Règle PORT-01 - SSH Brute Force}
+\begin{itemize}
+    \item \textbf{Condition}: Port 22 ouvert + Authentification par mot de passe
+    \item \textbf{Risque}: Attaques par force brute sur les mots de passe
+    \item \textbf{Source}: CIS Benchmark for Linux - Section 5.2.8
+    \item \textbf{Recommandation}: Utiliser l'authentification par clé SSH
+\end{itemize}
+
+\subsubsection{Exemple: Règle PERM-01 - Permissions 777}
+\begin{itemize}
+    \item \textbf{Condition}: Fichiers avec permissions 777
+    \item \textbf{Risque}: Tout utilisateur peut lire, écrire et exécuter
+    \item \textbf{Source}: CIS Benchmark - Section 6.1
+    \item \textbf{Recommandation}: Restreindre les permissions (chmod 755 ou moins)
+\end{itemize}
+
+\subsection{Recommandations (Patches)}
+
+Chaque vulnérabilité détectée est accompagnée d'une \textbf{action corrective}:
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Vulnérabilité} & \textbf{Recommandation} \\
+\hline
+ssh\_brute\_force\_risk & PasswordAuthentication no dans sshd\_config \\
+\hline
+telnet\_vulnerability & systemctl disable telnet \\
+\hline
+root\_ssh\_risk & PermitRootLogin no \\
+\hline
+world\_writable\_files & chmod 755 sur les fichiers concernés \\
+\hline
+no\_firewall\_protection & ufw enable \\
+\hline
+\end{tabular}
+\caption{Exemples de recommandations}
+\end{table}
+
+\newpage
+
+% ============================================================================
+% INTERFACE UTILISATEUR
+% ============================================================================
+\section{Interface Utilisateur}
+
+\subsection{Technologies Utilisées}
+
+\begin{itemize}
+    \item \textbf{React 18}: Framework JavaScript moderne
+    \item \textbf{TypeScript}: Typage statique pour la fiabilité
+    \item \textbf{Tailwind CSS}: Framework CSS utilitaire
+    \item \textbf{Framer Motion}: Animations fluides
+    \item \textbf{React Router}: Navigation entre pages
+    \item \textbf{Vite}: Build tool rapide
+\end{itemize}
+
+\subsection{Pages de l'Application}
+
+\subsubsection{Page d'Accueil (Home)}
+\begin{itemize}
+    \item Présentation du système
+    \item Statistiques: 50 règles, 4 niveaux, 7 catégories
+    \item Boutons d'action: Lancer l'analyse, Voir les règles
+\end{itemize}
+
+\subsubsection{Scanner de Vulnérabilités}
+Interface de type \textbf{survey} en 8 étapes:
+\begin{enumerate}
+    \item Ports ouverts (10 options)
+    \item Configuration SSL/TLS (9 options)
+    \item Configuration SSH (9 options)
+    \item Permissions fichiers (6 options)
+    \item Versions logiciels (6 options)
+    \item Base de données (8 options)
+    \item Configuration réseau (8 options)
+    \item \textbf{Choix de la méthode de chaînage}
+\end{enumerate}
+
+\subsubsection{Base de Connaissances}
+\begin{itemize}
+    \item Liste des 50 règles avec filtrage
+    \item Recherche par mot-clé
+    \item Filtrage par sévérité
+    \item Affichage format: SI conditions ALORS conséquence
+\end{itemize}
+
+\subsubsection{Page À Propos}
+\begin{itemize}
+    \item Description du système
+    \item Architecture technique
+    \item Crédits (étudiant, tuteur, école)
+\end{itemize}
+
+\newpage
+
+\subsection{Captures d'Écran}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{screenshot-home.png}
+\caption{Page d'accueil de Vultester}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{screenshot-scanner.png}
+\caption{Interface du scanner de vulnérabilités}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{screenshot-results.png}
+\caption{Affichage des résultats avec diagnostic}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{screenshot-rules.png}
+\caption{Liste des règles expertes}
+\end{figure}
+
+\newpage
+
+% ============================================================================
+% EXEMPLE D'EXÉCUTION
+% ============================================================================
+\section{Exemple d'Exécution}
+
+\subsection{Scénario de Test}
+
+\textbf{Configuration serveur simulée:}
+\begin{itemize}
+    \item Port 22 (SSH) ouvert
+    \item Port 80 (HTTP) ouvert
+    \item Authentification SSH par mot de passe
+    \item SSL non activé
+    \item Permissions 777 détectées
+    \item Pas de pare-feu
+\end{itemize}
+
+\subsection{Faits Initiaux}
+\begin{lstlisting}
+facts = [
+    "port_22_open",
+    "port_80_open", 
+    "password_auth_enabled",
+    "no_ssl_enabled",
+    "permission_777_found",
+    "no_firewall_enabled"
+]
+\end{lstlisting}
+
+\subsection{Trace d'Inférence (Chaînage Avant)}
+
+\begin{enumerate}
+    \item \textbf{Étape 0}: Initialisation avec 6 faits
+    \item \textbf{Étape 1}: Fait ajouté: port\_22\_open
+    \item \textbf{Étape 2}: Fait ajouté: password\_auth\_enabled
+    \item \textbf{Étape 3}: Règle PORT-01 déclenchée $\rightarrow$ ssh\_brute\_force\_risk
+    \item \textbf{Étape 4}: Fait ajouté: no\_ssl\_enabled
+    \item \textbf{Étape 5}: Règle SSL-01 déclenchée $\rightarrow$ unencrypted\_traffic
+    \item \textbf{Étape 6}: Règle PERM-01 déclenchée $\rightarrow$ world\_writable\_files
+    \item \textbf{Étape 7}: Règle NET-01 déclenchée $\rightarrow$ no\_firewall\_protection
+\end{enumerate}
+
+\subsection{Résultat du Diagnostic}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Métrique} & \textbf{Valeur} \\
+\hline
+Statut global & \textcolor{red}{\textbf{CRITICAL}} \\
+\hline
+Règles déclenchées & 4 \\
+\hline
+Vulnérabilités critiques & 2 \\
+\hline
+Configurations dangereuses & 2 \\
+\hline
+Avertissements & 0 \\
+\hline
+\end{tabular}
+\caption{Résumé du diagnostic}
+\end{table}
+
+\newpage
+
+% ============================================================================
+% LIMITES ET AMÉLIORATIONS
+% ============================================================================
+\section{Limites et Améliorations Possibles}
+
+\subsection{Limites Actuelles}
+
+\begin{enumerate}
+    \item \textbf{Détection manuelle}: L'utilisateur doit saisir manuellement la configuration
+    \item \textbf{Règles statiques}: Les règles ne s'adaptent pas automatiquement aux nouvelles vulnérabilités
+    \item \textbf{Pas de scan réseau}: Le système ne scanne pas directement les serveurs
+    \item \textbf{Base de connaissances limitée}: 50 règles couvrent les cas courants mais pas exhaustifs
+    \item \textbf{Pas de persistance}: Les analyses ne sont pas sauvegardées
+\end{enumerate}
+
+\subsection{Améliorations Possibles}
+
+\begin{enumerate}
+    \item \textbf{Scan automatique}: Intégrer Nmap pour détecter automatiquement les ports ouverts
+    \item \textbf{Base de données CVE}: Connecter à une API CVE pour des règles à jour
+    \item \textbf{Machine Learning}: Utiliser l'apprentissage pour améliorer les diagnostics
+    \item \textbf{Historique}: Sauvegarder les analyses pour suivre l'évolution
+    \item \textbf{Rapports PDF}: Générer des rapports exportables
+    \item \textbf{Multi-serveurs}: Analyser plusieurs serveurs simultanément
+    \item \textbf{Alertes}: Notifications en cas de nouvelles vulnérabilités
+\end{enumerate}
+
+\newpage
+
+% ============================================================================
+% CONCLUSION
+% ============================================================================
+\section{Conclusion}
+
+Ce projet a permis de développer \textbf{Vultester}, un système expert complet pour la détection de vulnérabilités serveur. Les objectifs ont été atteints:
+
+\begin{itemize}
+    \item[$\checkmark$] \textbf{Base de connaissances}: 50 règles expertes (requis: 15 minimum)
+    \item[$\checkmark$] \textbf{Moteur d'inférence}: 3 méthodes implémentées (avant, arrière, mixte)
+    \item[$\checkmark$] \textbf{4 niveaux de diagnostic}: Critical, Dangerous, Warning, Acceptable
+    \item[$\checkmark$] \textbf{Recommandations}: Actions correctives pour chaque vulnérabilité
+    \item[$\checkmark$] \textbf{Trace d'inférence}: Explication du raisonnement étape par étape
+    \item[$\checkmark$] \textbf{Interface web}: Application React moderne et intuitive
+    \item[$\checkmark$] \textbf{Code manuel}: Moteur d'inférence sans bibliothèques spécialisées
+\end{itemize}
+
+Le système démontre l'application pratique des concepts de systèmes experts vus en cours, notamment le chaînage avant inspiré de l'algorithme \texttt{chainageAvantSimple}.
+
+\vspace{1cm}
+
+\begin{center}
+\rule{0.5\textwidth}{0.5pt}
+\end{center}
+
+% ============================================================================
+% RÉFÉRENCES
+% ============================================================================
+\section*{Références}
+
+\begin{enumerate}
+    \item CIS Benchmarks - Center for Internet Security
+    \item OWASP - Open Web Application Security Project
+    \item NIST Cybersecurity Framework
+    \item CVE - Common Vulnerabilities and Exposures Database
+    \item Cours "Fondements de l'IA" - 4INFO 2025-2026
+\end{enumerate}
+
+\end{document}
