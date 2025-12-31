@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { HashRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Navbar } from './components/layout/Navbar'
 import { Home } from './pages/Home'
@@ -72,7 +72,7 @@ export default function App() {
   }, [])
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <AnimatePresence>
         {loading && <LoadingScreen />}
       </AnimatePresence>
@@ -83,6 +83,6 @@ export default function App() {
           <AnimatedRoutes />
         </>
       )}
-    </BrowserRouter>
+    </HashRouter>
   )
 }
