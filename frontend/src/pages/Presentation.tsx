@@ -9,7 +9,7 @@ export function Presentation() {
   const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(publicUrl)}`
 
   return (
-    <div className="min-h-screen bg-zinc-900 pt-28 pb-8 px-6 relative overflow-hidden">
+    <div className="min-h-screen bg-zinc-900 pt-24 md:pt-28 pb-6 md:pb-8 px-4 md:px-6 relative overflow-hidden">
       {/* Grid background */}
       <div 
         className="absolute inset-0 pointer-events-none"
@@ -30,14 +30,14 @@ export function Presentation() {
         transition={{ duration: 0.5 }}
         className="max-w-6xl mx-auto relative z-10"
       >
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-semibold text-white mb-2">Présentation</h1>
-          <p className="text-zinc-400 mb-4">Slides de présentation du projet Vultester</p>
-          <div className="flex items-center justify-center gap-4">
+        <div className="text-center mb-4 md:mb-6">
+          <h1 className="text-2xl md:text-3xl font-semibold text-white mb-2">Présentation</h1>
+          <p className="text-zinc-400 text-sm md:text-base mb-4">Slides de présentation du projet Vultester</p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <a 
               href={pptxPath}
               download="presentation.pptx"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
             >
               <Download className="w-4 h-4" />
               Télécharger PPTX
@@ -46,7 +46,7 @@ export function Presentation() {
               href={`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(publicUrl)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-zinc-700 hover:bg-zinc-600 text-white text-sm rounded-lg transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
               Ouvrir dans Office Online
@@ -54,7 +54,7 @@ export function Presentation() {
           </div>
         </div>
         
-        <div className="h-[calc(100vh-16rem)] rounded-xl border border-zinc-800 bg-zinc-950/50 backdrop-blur-sm overflow-hidden">
+        <div className="h-[calc(100vh-16rem)] md:h-[calc(100vh-18rem)] rounded-xl border border-zinc-800 bg-zinc-950/50 backdrop-blur-sm overflow-hidden">
           <iframe
             src={viewerUrl}
             className="w-full h-full"

@@ -39,7 +39,7 @@ export function KnowledgeBase() {
   }
 
   return (
-    <div className="min-h-screen pt-28 pb-16 px-6 bg-zinc-900 relative">
+    <div className="min-h-screen pt-24 md:pt-28 pb-16 px-4 md:px-6 bg-zinc-900 relative">
       {/* Grid background */}
       <div 
         className="absolute inset-0 pointer-events-none"
@@ -50,12 +50,12 @@ export function KnowledgeBase() {
       />
       <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/50 via-transparent to-zinc-900 pointer-events-none" />
       <div className="max-w-5xl mx-auto relative z-10">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
-          <Link to="/" className="text-zinc-500 text-sm hover:text-zinc-300 transition-colors inline-block mb-6">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8 md:mb-12">
+          <Link to="/" className="text-zinc-500 text-sm hover:text-zinc-300 transition-colors inline-block mb-4 md:mb-6">
             ← Retour
           </Link>
-          <h1 className="text-4xl font-semibold text-white mb-3">Base de connaissances</h1>
-          <p className="text-zinc-400 text-lg">
+          <h1 className="text-2xl md:text-4xl font-semibold text-white mb-2 md:mb-3">Base de connaissances</h1>
+          <p className="text-zinc-400 text-base md:text-lg">
             50 règles expertes pour la détection de vulnérabilités serveur.
           </p>
         </motion.div>
@@ -65,21 +65,21 @@ export function KnowledgeBase() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="flex flex-col sm:flex-row gap-4 mb-10"
+          className="flex flex-col gap-4 mb-10"
         >
           <input
             type="text"
             placeholder="Rechercher..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="flex-1 h-12 px-5 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-500 focus:outline-none focus:border-blue-500 transition-colors"
+            className="w-full h-12 px-5 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-500 focus:outline-none focus:border-blue-500 transition-colors"
           />
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {['all', 'critical', 'dangerous', 'warning', 'info'].map(f => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-5 h-12 rounded-xl text-sm font-medium transition-all ${
+                className={`px-4 md:px-5 h-10 md:h-12 rounded-xl text-xs md:text-sm font-medium transition-all ${
                   filter === f
                     ? 'bg-blue-500 text-white'
                     : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800 hover:border-zinc-700'

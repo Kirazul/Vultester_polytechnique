@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 
 export function Rapport() {
   return (
-    <div className="min-h-screen bg-zinc-900 pt-28 pb-8 px-6 relative overflow-hidden">
+    <div className="min-h-screen bg-zinc-900 pt-24 md:pt-28 pb-6 md:pb-8 px-4 md:px-6 relative overflow-hidden">
       {/* Grid background */}
       <div 
         className="absolute inset-0 pointer-events-none"
@@ -23,12 +23,12 @@ export function Rapport() {
         transition={{ duration: 0.5 }}
         className="max-w-6xl mx-auto relative z-10"
       >
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-semibold text-white mb-2">Rapport du Projet</h1>
-          <p className="text-zinc-400">Documentation complète du système expert Vultester</p>
+        <div className="text-center mb-4 md:mb-6">
+          <h1 className="text-2xl md:text-3xl font-semibold text-white mb-2">Rapport du Projet</h1>
+          <p className="text-zinc-400 text-sm md:text-base">Documentation complète du système expert Vultester</p>
         </div>
         
-        <div className="h-[calc(100vh-14rem)] rounded-xl border border-zinc-800 bg-zinc-950/50 backdrop-blur-sm overflow-hidden">
+        <div className="h-[calc(100vh-12rem)] md:h-[calc(100vh-14rem)] rounded-xl border border-zinc-800 bg-zinc-950/50 backdrop-blur-sm overflow-hidden">
           <iframe
             src={`${import.meta.env.BASE_URL}IA.pdf`}
             className="w-full h-full"

@@ -107,7 +107,7 @@ export function Scanner() {
   if (results) return <ResultsScreen results={results} onReset={reset} />
 
   return (
-    <div className="h-screen flex flex-col px-6 bg-zinc-900 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col px-4 md:px-6 bg-zinc-900 relative overflow-hidden">
       {/* Grid background */}
       <div 
         className="absolute inset-0 pointer-events-none"
@@ -118,21 +118,21 @@ export function Scanner() {
       />
       <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/50 via-transparent to-zinc-900 pointer-events-none" />
       
-      <div className="max-w-3xl w-full mx-auto relative z-10 flex flex-col h-full pt-24 pb-8">
+      <div className="max-w-3xl w-full mx-auto relative z-10 flex flex-col flex-1 pt-20 md:pt-24 pb-6 md:pb-8">
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-          <div className="flex items-center justify-between">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-4 md:mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <Link to="/" className="text-zinc-500 text-sm hover:text-zinc-300 transition-colors inline-block mb-2">
                 ← Retour
               </Link>
-              <h1 className="text-2xl font-semibold text-white">
+              <h1 className="text-xl md:text-2xl font-semibold text-white">
                 {isMethodStep ? 'Méthode d\'inférence' : currentCategory?.label}
               </h1>
             </div>
-            <div className="text-right">
+            <div className="sm:text-right">
               <div className="text-zinc-500 text-sm mb-1">Étape {step + 1}/{totalSteps}</div>
-              <div className="w-32 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="w-full sm:w-32 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                 <motion.div
                   className="h-full bg-blue-500"
                   initial={{ width: 0 }}
@@ -190,7 +190,7 @@ export function Scanner() {
               </div>
             ) : (
               // Category options
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {options.map((opt) => {
                   const disabled = isDisabled(opt.fact)
                   return (
@@ -198,7 +198,7 @@ export function Scanner() {
                       key={opt.fact}
                       onClick={() => toggle(opt.fact)}
                       disabled={disabled}
-                      className={`p-4 rounded-xl border text-left transition-all duration-200 ${
+                      className={`p-3 md:p-4 rounded-xl border text-left transition-all duration-200 ${
                         disabled
                           ? 'bg-zinc-900/30 border-zinc-800/50 text-zinc-600 cursor-not-allowed opacity-50'
                           : selected.has(opt.fact)
@@ -292,7 +292,7 @@ function ResultsScreen({ results, onReset }: { results: AnalysisResult; onReset:
   ]
 
   return (
-    <div className="min-h-screen pt-28 pb-16 px-6 bg-zinc-900 relative">
+    <div className="min-h-screen pt-24 md:pt-28 pb-16 px-4 md:px-6 bg-zinc-900 relative">
       <div 
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -304,7 +304,7 @@ function ResultsScreen({ results, onReset }: { results: AnalysisResult; onReset:
       <div className="max-w-3xl mx-auto relative z-10">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           {/* Status */}
-          <div className="text-center mb-16">
+          <div className="text-center mb-10 md:mb-16">
             <div className="text-zinc-500 text-sm mb-4 uppercase tracking-wider">
               {results.method_name || 'Chaînage Avant'}
             </div>
@@ -312,24 +312,24 @@ function ResultsScreen({ results, onReset }: { results: AnalysisResult; onReset:
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: 'spring', delay: 0.2 }}
-              className={`text-7xl font-bold mb-4 ${status.color}`}
+              className={`text-4xl sm:text-5xl md:text-7xl font-bold mb-4 ${status.color}`}
             >
               {status.label}
             </motion.div>
-            <p className="text-zinc-400 text-lg">{results.total_rules_fired} règles déclenchées</p>
+            <p className="text-zinc-400 text-base md:text-lg">{results.total_rules_fired} règles déclenchées</p>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-4 gap-4 mb-16">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-12 md:mb-16">
             {[
               { count: results.vulnerabilities.critical.length, label: 'Critiques', color: 'text-red-500' },
               { count: results.vulnerabilities.dangerous.length, label: 'Dangereux', color: 'text-orange-500' },
               { count: results.vulnerabilities.warning.length, label: 'Avertissements', color: 'text-yellow-500' },
               { count: results.vulnerabilities.info.length, label: 'Info', color: 'text-blue-500' },
             ].map((s) => (
-              <div key={s.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 text-center">
-                <div className={`text-3xl font-bold ${s.color}`}>{s.count}</div>
-                <div className="text-zinc-500 text-sm mt-1">{s.label}</div>
+              <div key={s.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 md:p-6 text-center">
+                <div className={`text-2xl md:text-3xl font-bold ${s.color}`}>{s.count}</div>
+                <div className="text-zinc-500 text-xs md:text-sm mt-1">{s.label}</div>
               </div>
             ))}
           </div>
