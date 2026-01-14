@@ -17,7 +17,7 @@ CORS(app)
 # ============================================================================
 
 rules = [
-    # === PORT - Vulnérabilités des Ports (10 règles) ===
+    # === PORT - Vulnérabilités des Ports (10 règles) =
     {"id": "PORT-01", "conditions": ["port_22_open", "password_auth_enabled"], 
      "consequence": "ssh_brute_force_risk", "severity": "dangerous",
      "description": "SSH avec authentification par mot de passe est vulnérable aux attaques brute force"},
