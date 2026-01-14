@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { categories, configOptions, mutualExclusions } from '@/data/config'
 import { AnalysisResult } from '@/types'
 import { API_URL } from '@/config/api'
+import jsPDF from 'jspdf'
 
 const chainingMethods = [
   { 
@@ -277,6 +278,8 @@ function AnalyzingScreen() {
 }
 
 function ResultsScreen({ results, onReset }: { results: AnalysisResult; onReset: () => void }) {
+  const [showTrace, setShowTrace] = useState(false)
+  
   const statusConfig: Record<string, { color: string; label: string }> = {
     CRITICAL: { color: 'text-red-500', label: 'Critique' },
     DANGEROUS: { color: 'text-orange-500', label: 'Dangereux' },
@@ -290,6 +293,164 @@ function ResultsScreen({ results, onReset }: { results: AnalysisResult; onReset:
     ...results.vulnerabilities.dangerous,
     ...results.vulnerabilities.warning,
   ]
+
+  const generatePDF = () => {
+    const doc = new jsPDF()
+    const pageWidth = doc.internal.pageSize.getWidth()
+    let y = 20
+    const lineHeight = 7
+    const margin = 20
+
+    // Helper function to add text with word wrap
+    const addWrappedText = (text: string, x: number, maxWidth: number, fontSize: number = 10) => {
+      doc.setFontSize(fontSize)
+      const lines = doc.splitTextToSize(text, maxWidth)
+      lines.forEach((line: string) => {
+        if (y > 270) {
+          doc.addPage()
+          y = 20
+        }
+        doc.text(line, x, y)
+        y += lineHeight
+      })
+    }
+
+    // Title
+    doc.setFontSize(24)
+    doc.setFont('helvetica', 'bold')
+    doc.text('RAPPORT DE SECURITE', pageWidth / 2, y, { align: 'center' })
+    y += 10
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'normal')
+    doc.text('Systeme Expert Vultester', pageWidth / 2, y, { align: 'center' })
+    y += 15
+
+    // Date and Method
+    doc.setFontSize(10)
+    doc.text(`Date: ${new Date().toLocaleDateString('fr-FR')} - ${new Date().toLocaleTimeString('fr-FR')}`, margin, y)
+    y += lineHeight
+    doc.text(`Methode d'inference: ${results.method_name}`, margin, y)
+    y += 15
+
+    // Status
+    doc.setFontSize(16)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`STATUT: ${status.label.toUpperCase()}`, margin, y)
+    y += lineHeight
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text(results.status_message, margin, y)
+    y += 15
+
+    // Statistics
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text('STATISTIQUES', margin, y)
+    y += lineHeight
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`- Regles declenchees: ${results.total_rules_fired}`, margin, y)
+    y += lineHeight
+    doc.text(`- Vulnerabilites critiques: ${results.vulnerabilities.critical.length}`, margin, y)
+    y += lineHeight
+    doc.text(`- Vulnerabilites dangereuses: ${results.vulnerabilities.dangerous.length}`, margin, y)
+    y += lineHeight
+    doc.text(`- Avertissements: ${results.vulnerabilities.warning.length}`, margin, y)
+    y += lineHeight
+    doc.text(`- Informations: ${results.vulnerabilities.info.length}`, margin, y)
+    y += 15
+
+    // Vulnerabilities
+    if (allVulns.length > 0) {
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'bold')
+      doc.text('VULNERABILITES DETECTEES', margin, y)
+      y += lineHeight + 3
+
+      allVulns.forEach((v, i) => {
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'bold')
+        doc.text(`${i + 1}. [${v.rule_id}]`, margin, y)
+        y += lineHeight
+        doc.setFont('helvetica', 'normal')
+        addWrappedText(v.description, margin + 5, pageWidth - margin * 2 - 5)
+        y += 3
+      })
+      y += 10
+    }
+
+    // Recommendations
+    if (results.patches.length > 0) {
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'bold')
+      doc.text('RECOMMANDATIONS', margin, y)
+      y += lineHeight + 3
+
+      results.patches.forEach((p, i) => {
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'bold')
+        doc.text(`${i + 1}. ${p.rule_id}`, margin, y)
+        y += lineHeight
+        doc.setFont('helvetica', 'normal')
+        addWrappedText(`Probleme: ${p.vulnerability}`, margin + 5, pageWidth - margin * 2 - 5)
+        addWrappedText(`Solution: ${p.recommendation}`, margin + 5, pageWidth - margin * 2 - 5)
+        y += 5
+      })
+      y += 10
+    }
+
+    // Inference Trace
+    doc.addPage()
+    y = 20
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text('TRACE DU CHAINAGE', margin, y)
+    y += lineHeight + 3
+
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    results.inference_trace.forEach((step) => {
+      if (y > 270) {
+        doc.addPage()
+        y = 20
+      }
+      const stepText = `[Etape ${step.step}] ${step.message}`
+      addWrappedText(stepText, margin, pageWidth - margin * 2, 9)
+      if (step.rule_id) {
+        doc.setFont('helvetica', 'italic')
+        addWrappedText(`   -> Regle: ${step.rule_id} | Severite: ${step.severity || 'N/A'}`, margin, pageWidth - margin * 2, 8)
+        doc.setFont('helvetica', 'normal')
+      }
+      y += 2
+    })
+
+    // Final Facts
+    y += 10
+    if (y > 250) {
+      doc.addPage()
+      y = 20
+    }
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text('FAITS FINAUX', margin, y)
+    y += lineHeight + 3
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    const factsText = results.final_facts.join(', ')
+    addWrappedText(factsText, margin, pageWidth - margin * 2, 9)
+
+    // Footer
+    const pageCount = doc.getNumberOfPages()
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i)
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Vultester - Systeme Expert de Detection de Vulnerabilites | Page ${i}/${pageCount}`, pageWidth / 2, 290, { align: 'center' })
+    }
+
+    // Save
+    doc.save(`rapport-securite-${new Date().toISOString().split('T')[0]}.pdf`)
+  }
 
   return (
     <div className="min-h-screen pt-24 md:pt-28 pb-16 px-4 md:px-6 bg-zinc-900 relative">
@@ -305,6 +466,19 @@ function ResultsScreen({ results, onReset }: { results: AnalysisResult; onReset:
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           {/* Status */}
           <div className="text-center mb-10 md:mb-16">
+            {/* Download PDF Button */}
+            <div className="flex justify-end mb-6">
+              <button
+                onClick={generatePDF}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm font-medium"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Télécharger PDF
+              </button>
+            </div>
+            
             <div className="text-zinc-500 text-sm mb-4 uppercase tracking-wider">
               {results.method_name || 'Chaînage Avant'}
             </div>
@@ -369,6 +543,113 @@ function ResultsScreen({ results, onReset }: { results: AnalysisResult; onReset:
               </div>
             </div>
           )}
+
+          {/* Inference Trace Section */}
+          <div className="mb-16">
+            <button
+              onClick={() => setShowTrace(!showTrace)}
+              className="w-full flex items-center justify-between p-5 bg-zinc-900 border border-zinc-800 rounded-xl hover:border-zinc-700 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  </svg>
+                </div>
+                <div className="text-left">
+                  <h3 className="text-lg font-medium text-white">Trace du Chaînage</h3>
+                  <p className="text-zinc-500 text-sm">Voir le détail de l'exécution du {results.method_name}</p>
+                </div>
+              </div>
+              <motion.svg
+                animate={{ rotate: showTrace ? 180 : 0 }}
+                className="w-5 h-5 text-zinc-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </motion.svg>
+            </button>
+
+            <AnimatePresence>
+              {showTrace && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="mt-4 bg-zinc-900 border border-zinc-800 rounded-xl p-5 max-h-96 overflow-y-auto">
+                    <div className="space-y-3">
+                      {results.inference_trace.map((step, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.03 }}
+                          className={`p-4 rounded-lg border ${
+                            step.action === 'rule_fired' 
+                              ? 'bg-blue-500/5 border-blue-500/20' 
+                              : step.action === 'phase_start'
+                                ? 'bg-purple-500/5 border-purple-500/20'
+                                : 'bg-zinc-800/50 border-zinc-700/50'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className="flex-shrink-0 w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-mono text-zinc-400">
+                              {step.step}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white text-sm">{step.message}</p>
+                              {step.rule_id && (
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  <span className="px-2 py-1 bg-zinc-800 rounded text-xs font-mono text-blue-400">
+                                    {step.rule_id}
+                                  </span>
+                                  {step.severity && (
+                                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                      step.severity === 'critical' ? 'bg-red-500/10 text-red-400' :
+                                      step.severity === 'dangerous' ? 'bg-orange-500/10 text-orange-400' :
+                                      step.severity === 'warning' ? 'bg-yellow-500/10 text-yellow-400' :
+                                      'bg-blue-500/10 text-blue-400'
+                                    }`}>
+                                      {step.severity}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                              {step.conditions && (
+                                <div className="mt-2 text-xs font-mono text-zinc-500">
+                                  <span className="text-zinc-600">SI </span>
+                                  {step.conditions.join(' ET ')}
+                                  <span className="text-zinc-600"> ALORS </span>
+                                  <span className="text-blue-400">{step.consequence}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    {/* Final Facts */}
+                    <div className="mt-6 pt-6 border-t border-zinc-800">
+                      <h4 className="text-sm font-medium text-zinc-400 mb-3">Faits finaux ({results.final_facts.length})</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {results.final_facts.map((fact, i) => (
+                          <span key={i} className="px-2 py-1 bg-zinc-800 rounded text-xs font-mono text-zinc-300">
+                            {fact}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* Actions */}
           <div className="flex justify-center gap-4">
