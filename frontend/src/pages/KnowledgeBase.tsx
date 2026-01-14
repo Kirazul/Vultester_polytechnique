@@ -7,6 +7,7 @@ import { API_URL } from '@/config/api'
 export function KnowledgeBase() {
   const [rules, setRules] = useState<Rule[]>([])
   const [filter, setFilter] = useState('all')
+  const [categoryFilter, setCategoryFilter] = useState('all')
   const [search, setSearch] = useState('')
 
   useEffect(() => {
@@ -18,10 +19,11 @@ export function KnowledgeBase() {
 
   const filtered = rules.filter(r => {
     const matchFilter = filter === 'all' || r.severity === filter
+    const matchCategory = categoryFilter === 'all' || r.id.startsWith(categoryFilter)
     const matchSearch = search === '' || 
       r.description.toLowerCase().includes(search.toLowerCase()) ||
       r.id.toLowerCase().includes(search.toLowerCase())
-    return matchFilter && matchSearch
+    return matchFilter && matchCategory && matchSearch
   })
 
   const severityLabels: Record<string, string> = {
@@ -37,6 +39,16 @@ export function KnowledgeBase() {
     warning: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
     info: 'bg-blue-500/10 text-blue-400 border-blue-500/20'
   }
+
+  const categories = [
+    { id: 'all', label: 'Toutes' },
+    { id: 'PORT', label: 'Ports' },
+    { id: 'SSL', label: 'SSL/TLS' },
+    { id: 'SSH', label: 'SSH' },
+    { id: 'PERM', label: 'Permissions' },
+    { id: 'SOFT', label: 'Logiciels' },
+    { id: 'NET', label: 'Réseau' }
+  ]
 
   return (
     <div className="min-h-screen pt-24 md:pt-28 pb-16 px-4 md:px-6 bg-zinc-900 relative">
@@ -74,20 +86,45 @@ export function KnowledgeBase() {
             onChange={e => setSearch(e.target.value)}
             className="w-full h-12 px-5 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-500 focus:outline-none focus:border-blue-500 transition-colors"
           />
-          <div className="flex flex-wrap gap-2">
-            {['all', 'critical', 'dangerous', 'warning', 'info'].map(f => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-4 md:px-5 h-10 md:h-12 rounded-xl text-xs md:text-sm font-medium transition-all ${
-                  filter === f
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800 hover:border-zinc-700'
-                }`}
-              >
-                {f === 'all' ? 'Tous' : severityLabels[f]}
-              </button>
-            ))}
+          
+          {/* Category Filters */}
+          <div>
+            <p className="text-zinc-500 text-xs font-medium mb-2 uppercase tracking-wider">Catégories</p>
+            <div className="flex flex-wrap gap-2">
+              {categories.map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => setCategoryFilter(cat.id)}
+                  className={`px-3 md:px-4 h-10 md:h-11 rounded-xl text-xs md:text-sm font-medium transition-all ${
+                    categoryFilter === cat.id
+                      ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
+                      : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800 hover:border-zinc-700'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Severity Filters */}
+          <div>
+            <p className="text-zinc-500 text-xs font-medium mb-2 uppercase tracking-wider">Sévérité</p>
+            <div className="flex flex-wrap gap-2">
+              {['all', 'critical', 'dangerous', 'warning', 'info'].map(f => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`px-4 md:px-5 h-10 md:h-12 rounded-xl text-xs md:text-sm font-medium transition-all ${
+                    filter === f
+                      ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
+                      : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800 hover:border-zinc-700'
+                  }`}
+                >
+                  {f === 'all' ? 'Tous' : severityLabels[f]}
+                </button>
+              ))}
+            </div>
           </div>
         </motion.div>
 
@@ -102,7 +139,12 @@ export function KnowledgeBase() {
               className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-zinc-700 transition-colors"
             >
               <div className="flex items-start justify-between gap-4 mb-4">
-                <span className="font-mono text-blue-400 text-lg">{rule.id}</span>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-blue-400 text-lg">{rule.id}</span>
+                  <span className="px-2 py-1 rounded-md text-xs font-medium bg-zinc-800 text-zinc-400 border border-zinc-700">
+                    {rule.id.split('-')[0]}
+                  </span>
+                </div>
                 <span className={`px-3 py-1 rounded-lg text-xs font-medium border ${severityColors[rule.severity]}`}>
                   {severityLabels[rule.severity]}
                 </span>
